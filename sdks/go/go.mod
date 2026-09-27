@@ -1,4 +1,4 @@
-module github.com/paygham/paygham-go
+module github.com/SamimSafi/payghamSdks/sdks/go
 
 go 1.23
 

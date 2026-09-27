@@ -3,8 +3,8 @@
 #
 # Usage example: /bin/sh ./git_push.sh wing328 openapi-petstore-perl "minor update" "gitlab.com"
 
-git_user_id=${1:-paygham}
-git_repo_id=${2:-paygham-sdks}
+git_user_id=${1:-SamimSafi}
+git_repo_id=${2:-payghamSdks}
 release_note=${3:-Minor update}
 git_host=${4:-github.com}
 

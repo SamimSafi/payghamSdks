@@ -1,9 +1,15 @@
 openapi: 3.0.3
 info:
+  contact:
+    name: Paygham SDK Support
+    url: https://github.com/SamimSafi/payghamSdks/issues
   description: Public server-side API for sending WhatsApp messages and monitoring
     delivery.
   title: Paygham Messaging API
   version: 1.0.0
+externalDocs:
+  description: Paygham SDK source and documentation
+  url: https://github.com/SamimSafi/payghamSdks
 servers:
 - description: Local development. Configure generated clients with the production
     API base URL.

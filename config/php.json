@@ -3,5 +3,9 @@
   "packageName": "Paygham SDK",
   "artifactVersion": "0.1.0",
   "composerVendorName": "paygham",
-  "composerProjectName": "sdk"
+  "composerProjectName": "sdk",
+  "composerPackageName": "paygham/sdk",
+  "developerOrganization": "Paygham",
+  "developerOrganizationUrl": "https://github.com/SamimSafi/payghamSdks",
+  "licenseName": "proprietary"
 }

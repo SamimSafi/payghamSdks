@@ -1,5 +1,8 @@
 {
   "gemName": "paygham",
   "gemVersion": "0.1.0",
-  "moduleName": "Paygham"
+  "moduleName": "Paygham",
+  "gemAuthor": "Paygham",
+  "gemHomepage": "https://github.com/SamimSafi/payghamSdks",
+  "gemLicense": "Nonstandard"
 }

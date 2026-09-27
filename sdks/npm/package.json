@@ -1,12 +1,14 @@
 {
   "name": "@paygham/sdk",
-  "version": "0.1.0",
-  "description": "OpenAPI client for @paygham/sdk",
-  "author": "OpenAPI-Generator",
+  "version": "0.1.1",
+  "description": "Official TypeScript and JavaScript SDK for the Paygham Messaging API.",
+  "author": "Paygham",
   "repository": {
     "type": "git",
-    "url": "https://github.com/paygham/paygham-sdks.git"
+    "url": "https://github.com/SamimSafi/payghamSdks.git",
+    "directory": "sdks/npm"
   },
+  "license": "UNLICENSED",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "module": "./dist/esm/index.js",
@@ -17,5 +19,29 @@
   },
   "devDependencies": {
     "typescript": "^4.0 || ^5.0"
+  },
+  "homepage": "https://github.com/SamimSafi/payghamSdks#readme",
+  "bugs": {
+    "url": "https://github.com/SamimSafi/payghamSdks/issues"
+  },
+  "keywords": [
+    "paygham",
+    "whatsapp",
+    "messaging",
+    "api",
+    "sdk",
+    "typescript"
+  ],
+  "files": [
+    "dist",
+    "docs",
+    "README.md",
+    "ERRORS.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

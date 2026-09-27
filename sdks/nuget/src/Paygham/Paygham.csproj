@@ -6,16 +6,19 @@
     <AssemblyName>Paygham</AssemblyName>
     <PackageId>Paygham</PackageId>
     <OutputType>Library</OutputType>
-    <Authors>OpenAPI</Authors>
-    <Company>OpenAPI</Company>
-    <AssemblyTitle>OpenAPI Library</AssemblyTitle>
-    <Description>A library generated from a OpenAPI doc</Description>
-    <Copyright>No Copyright</Copyright>
+    <Authors>Paygham</Authors>
+    <Company>Paygham</Company>
+    <AssemblyTitle>Paygham Messaging SDK</AssemblyTitle>
+    <Description>Official .NET SDK for the Paygham Messaging API.</Description>
+    <Copyright>Copyright Paygham</Copyright>
     <RootNamespace>Paygham</RootNamespace>
     <Version>0.1.0</Version>
     <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\Paygham.xml</DocumentationFile>
-    <RepositoryUrl>https://github.com/paygham/paygham-sdks.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/SamimSafi/payghamSdks.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/SamimSafi/payghamSdks</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>paygham;whatsapp;messaging;api;sdk</PackageTags>
     <PackageReleaseNotes>Minor update</PackageReleaseNotes>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
@@ -26,6 +29,11 @@
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Condition="'$(TargetFramework)' == 'netstandard1.3' or '$(TargetFramework)' == 'netstandard1.4' or '$(TargetFramework)' == 'netstandard1.5' or '$(TargetFramework)' == 'netstandard1.6' or '$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1'" Version="5.0.1" />
     <PackageReference Include="System.Threading.Channels" Version="8.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="README.md" />
+    <None Include="../../ERRORS.md" Pack="true" PackagePath="ERRORS.md" />
   </ItemGroup>
 
 </Project>

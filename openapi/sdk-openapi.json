@@ -3,7 +3,15 @@
   "info": {
     "title": "Paygham Messaging API",
     "version": "1.0.0",
-    "description": "Public server-side API for sending WhatsApp messages and monitoring delivery."
+    "description": "Public server-side API for sending WhatsApp messages and monitoring delivery.",
+    "contact": {
+      "name": "Paygham SDK Support",
+      "url": "https://github.com/SamimSafi/payghamSdks/issues"
+    }
+  },
+  "externalDocs": {
+    "description": "Paygham SDK source and documentation",
+    "url": "https://github.com/SamimSafi/payghamSdks"
   },
   "servers": [
     {

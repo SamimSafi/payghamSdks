@@ -1,9 +1,9 @@
 [project]
-name = "paygham"
+name = "paygham-sdk"
 version = "0.1.0"
 description = "Paygham Messaging API"
 authors = [
-  {name = "OpenAPI Generator Community",email = "team@openapitools.org"},
+  {name = "Paygham"},
 ]
 readme = "README.md"
 keywords = ["OpenAPI", "OpenAPI-Generator", "Paygham Messaging API"]
@@ -17,7 +17,9 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/paygham/paygham-sdks"
+Documentation = "https://github.com/SamimSafi/payghamSdks/tree/main/sdks/python"
+Issues = "https://github.com/SamimSafi/payghamSdks/issues"
+Repository = "https://github.com/SamimSafi/payghamSdks"
 
 [tool.poetry]
 requires-poetry = ">=2.0"

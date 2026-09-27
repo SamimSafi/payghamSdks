@@ -19,14 +19,18 @@ Gem::Specification.new do |s|
   s.name        = "paygham"
   s.version     = Paygham::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["OpenAPI-Generator"]
+  s.authors     = ["Paygham"]
   s.email       = [""]
-  s.homepage    = "https://openapi-generator.tech"
+  s.homepage    = "https://github.com/SamimSafi/payghamSdks"
   s.summary     = "Paygham Messaging API Ruby Gem"
   s.description = "Public server-side API for sending WhatsApp messages and monitoring delivery."
-  s.license     = "Unlicense"
+  s.license     = "Nonstandard"
   s.required_ruby_version = ">= 2.7"
-  s.metadata    = {}
+  s.metadata    = {
+    "source_code_uri" => "https://github.com/SamimSafi/payghamSdks",
+    "bug_tracker_uri" => "https://github.com/SamimSafi/payghamSdks/issues",
+    "documentation_uri" => "https://github.com/SamimSafi/payghamSdks/tree/main/sdks/ruby"
+  }
 
   s.add_runtime_dependency 'typhoeus', '~> 1.0', '>= 1.0.1'
 

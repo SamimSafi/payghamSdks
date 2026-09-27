@@ -27,7 +27,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/paygham/paygham-go"
+	openapiclient "github.com/SamimSafi/payghamSdks"
 )
 
 func main() {
@@ -95,7 +95,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/paygham/paygham-go"
+	openapiclient "github.com/SamimSafi/payghamSdks"
 )
 
 func main() {
@@ -163,7 +163,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/paygham/paygham-go"
+	openapiclient "github.com/SamimSafi/payghamSdks"
 )
 
 func main() {
@@ -231,7 +231,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/paygham/paygham-go"
+	openapiclient "github.com/SamimSafi/payghamSdks"
 )
 
 func main() {
@@ -297,7 +297,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	openapiclient "github.com/paygham/paygham-go"
+	openapiclient "github.com/SamimSafi/payghamSdks"
 )
 
 func main() {

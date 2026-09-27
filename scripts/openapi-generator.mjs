@@ -59,11 +59,25 @@ const generateSdk = async (name) => {
     '-g', sdk.generator,
     '-o', output,
     '-c', resolve(root, 'config', sdk.config),
-    '--git-user-id', 'paygham',
-    '--git-repo-id', name === 'go' ? 'paygham-go' : 'paygham-sdks',
+    '--git-user-id', 'SamimSafi',
+    '--git-repo-id', 'payghamSdks',
     '--global-property', 'apiTests=false,modelTests=false'
   ]);
+  await runPostprocess(name);
 };
+
+const runPostprocess = (name) => new Promise((resolvePromise, reject) => {
+  const child = spawn(process.execPath, [resolve(root, 'scripts', 'postprocess-generated.mjs'), name], {
+    cwd: root,
+    stdio: 'inherit',
+  });
+  child.once('error', reject);
+  child.once('exit', (code, signal) => {
+    if (signal) reject(new Error(`Post-processing stopped by ${signal}`));
+    else if (code === 0) resolvePromise();
+    else reject(new Error(`Post-processing exited with code ${code}`));
+  });
+});
 
 const command = process.argv[2];
 const requested = process.argv[3];

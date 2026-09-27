@@ -2,6 +2,10 @@
 
 Official client libraries generated from the Paygham Messaging OpenAPI contract.
 
+- Repository: <https://github.com/SamimSafi/payghamSdks>
+- Issues and support: <https://github.com/SamimSafi/payghamSdks/issues>
+- Shared error and retry guidance: [docs/errors.md](docs/errors.md)
+
 ## SDKs
 
 | Ecosystem | Output | Tentative package name |
@@ -11,7 +15,7 @@ Official client libraries generated from the Paygham Messaging OpenAPI contract.
 | RubyGems | `sdks/ruby` | `paygham` |
 | Composer / PHP | `sdks/php` | `paygham/sdk` |
 | NuGet | `sdks/nuget` | `Paygham` |
-| Go modules | `sdks/go` | `github.com/paygham/paygham-go` |
+| Go modules | `sdks/go` | `github.com/SamimSafi/payghamSdks/sdks/go` |
 
 Package names are intentionally easy to change in `config/*.json`. Confirm registry ownership and choose a license before the first public release.
 

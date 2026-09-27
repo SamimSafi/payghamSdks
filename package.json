@@ -12,7 +12,8 @@
     "generate:ruby": "node scripts/openapi-generator.mjs generate ruby",
     "generate:php": "node scripts/openapi-generator.mjs generate php",
     "generate:nuget": "node scripts/openapi-generator.mjs generate nuget",
-    "generate:go": "node scripts/openapi-generator.mjs generate go"
+    "generate:go": "node scripts/openapi-generator.mjs generate go",
+    "check:generated": "node scripts/check-generated.mjs"
   },
   "engines": {
     "node": ">=20"
