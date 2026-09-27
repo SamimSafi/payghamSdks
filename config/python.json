@@ -1,0 +1,6 @@
+{
+  "packageName": "paygham",
+  "projectName": "paygham-sdk",
+  "packageVersion": "0.1.0",
+  "library": "urllib3"
+}

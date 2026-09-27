@@ -1,0 +1,765 @@
+openapi: 3.0.3
+info:
+  description: Public server-side API for sending WhatsApp messages and monitoring
+    delivery.
+  title: Paygham Messaging API
+  version: 1.0.0
+servers:
+- description: Local development. Configure generated clients with the production
+    API base URL.
+  url: http://localhost:3000
+tags:
+- description: Send messages and check delivery with an API key
+  name: Messaging
+paths:
+  /api/v1/messages:
+    post:
+      operationId: sendMessage
+      parameters:
+      - description: Stable unique key for this business message. Reuse it when retrying
+          the same request.
+        explode: false
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          maxLength: 255
+          minLength: 1
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendMessageResponse"
+          description: Message queued or consent flow started
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Request validation failed
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Authentication is missing or invalid
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The authenticated principal cannot perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The requested resource was not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The request conflicts with the current resource state
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The request body is too large
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Rate or quota limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              explode: false
+              schema:
+                type: integer
+              style: simple
+        "502":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The upstream messaging service failed
+      security:
+      - apiKeyHeader: []
+      summary: Send a WhatsApp message using an API key
+      tags:
+      - Messaging
+  /api/v1/messages/bulk:
+    post:
+      operationId: sendBulkMessages
+      parameters:
+      - description: Stable unique key for this batch. Each recipient is deduplicated
+          independently.
+        explode: false
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          maxLength: 255
+          minLength: 1
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkMessageRequest"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkMessageResponse"
+          description: Batch accepted; inspect per-recipient results
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Request validation failed
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Authentication is missing or invalid
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The authenticated principal cannot perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The requested resource was not found
+        "409":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The request conflicts with the current resource state
+        "413":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The request body is too large
+        "429":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Rate or quota limit exceeded
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying.
+              explode: false
+              schema:
+                type: integer
+              style: simple
+      security:
+      - apiKeyHeader: []
+      summary: Queue the same message for many recipients
+      tags:
+      - Messaging
+  /api/v1/messages/accounts/{whatsappAccountId}/delivery-status:
+    get:
+      operationId: getDeliveryStatus
+      parameters:
+      - explode: false
+        in: path
+        name: whatsappAccountId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryStatusResponse"
+          description: Pending / sent / failed counts
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Authentication is missing or invalid
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The requested resource was not found
+      security:
+      - apiKeyHeader: []
+      summary: Get outbound delivery counts for an account
+      tags:
+      - Messaging
+  /api/v1/messages/accounts/{whatsappAccountId}/connection-status:
+    get:
+      operationId: getConnectionStatus
+      parameters:
+      - explode: false
+        in: path
+        name: whatsappAccountId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionStatusResponse"
+          description: Connection snapshot
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Authentication is missing or invalid
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The requested resource was not found
+      security:
+      - apiKeyHeader: []
+      summary: Check live WhatsApp connection status
+      tags:
+      - Messaging
+  /api/v1/messages/accounts/{whatsappAccountId}/resume:
+    post:
+      operationId: resumeDelivery
+      parameters:
+      - explode: false
+        in: path
+        name: whatsappAccountId
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResumeDeliveryResponse"
+          description: Resume result
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: Authentication is missing or invalid
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiError"
+          description: The requested resource was not found
+      security:
+      - apiKeyHeader: []
+      summary: Requeue pending outbound messages after reconnect
+      tags:
+      - Messaging
+components:
+  responses:
+    ValidationError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: Request validation failed
+    UnauthorizedError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: Authentication is missing or invalid
+    ForbiddenError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: The authenticated principal cannot perform this operation
+    NotFoundError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: The requested resource was not found
+    ConflictError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: The request conflicts with the current resource state
+    RateLimitedError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: Rate or quota limit exceeded
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying.
+          explode: false
+          schema:
+            type: integer
+          style: simple
+    PayloadTooLargeError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: The request body is too large
+    UpstreamError:
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ApiError"
+      description: The upstream messaging service failed
+  schemas:
+    ApiError:
+      example:
+        error:
+          code: VALIDATION_ERROR
+          message: Request validation failed
+          details: "{}"
+      properties:
+        error:
+          $ref: "#/components/schemas/ApiErrorBody"
+      required:
+      - error
+      type: object
+    ApiErrorBody:
+      example:
+        code: VALIDATION_ERROR
+        message: Request validation failed
+        details: "{}"
+      properties:
+        code:
+          example: VALIDATION_ERROR
+          type: string
+        message:
+          example: Request validation failed
+          type: string
+        details:
+          nullable: true
+          type: object
+      required:
+      - code
+      - message
+      type: object
+    SendMessageRequest:
+      example:
+        whatsappAccountId: whatsappAccountId
+        countryCode: AF
+        to: "0787349769"
+        recipient: "+93787349769"
+        message: Hello from my application
+        content: content
+        mediaUrl: https://openapi-generator.tech
+        mediaBase64: mediaBase64
+        mediaMimeType: image/jpeg
+        mediaFilename: invoice.pdf
+      properties:
+        whatsappAccountId:
+          type: string
+        countryCode:
+          description: ISO country code; required for local numbers starting with
+            0
+          example: AF
+          maxLength: 2
+          minLength: 2
+          type: string
+        to:
+          description: "Destination phone (alias: recipient)"
+          example: "0787349769"
+          type: string
+        recipient:
+          deprecated: true
+          description: Deprecated alias for to.
+          example: "+93787349769"
+          type: string
+        message:
+          description: "Text body (alias: content). Optional when media is provided."
+          example: Hello from my application
+          maxLength: 4096
+          type: string
+        content:
+          deprecated: true
+          description: Deprecated alias for message.
+          maxLength: 4096
+          type: string
+        mediaUrl:
+          description: Public http(s) URL for an image or PDF. Mutually exclusive
+            with mediaBase64.
+          format: uri
+          pattern: ^https?://
+          type: string
+        mediaBase64:
+          description: Base64-encoded media. Mutually exclusive with mediaUrl.
+          maxLength: 16000000
+          type: string
+        mediaMimeType:
+          description: Required when mediaUrl or mediaBase64 is set.
+          enum:
+          - image/jpeg
+          - image/png
+          - application/pdf
+          type: string
+        mediaFilename:
+          example: invoice.pdf
+          maxLength: 255
+          type: string
+      required:
+      - to
+      - whatsappAccountId
+      type: object
+    BulkMessageRequest:
+      example:
+        whatsappAccountId: whatsappAccountId
+        countryCode: AF
+        recipients:
+        - "0787349769"
+        - "+93787349770"
+        message: message
+        content: content
+        mediaUrl: https://openapi-generator.tech
+        mediaBase64: mediaBase64
+        mediaMimeType: image/jpeg
+        mediaFilename: mediaFilename
+      properties:
+        whatsappAccountId:
+          type: string
+        countryCode:
+          example: AF
+          maxLength: 2
+          minLength: 2
+          type: string
+        recipients:
+          example:
+          - "0787349769"
+          - "+93787349770"
+          items:
+            type: string
+          minItems: 1
+          type: array
+        message:
+          maxLength: 4096
+          type: string
+        content:
+          maxLength: 4096
+          type: string
+        mediaUrl:
+          format: uri
+          pattern: ^https?://
+          type: string
+        mediaBase64:
+          maxLength: 16000000
+          type: string
+        mediaMimeType:
+          enum:
+          - image/jpeg
+          - image/png
+          - application/pdf
+          type: string
+        mediaFilename:
+          maxLength: 255
+          type: string
+      required:
+      - recipients
+      - whatsappAccountId
+      type: object
+    SendMessageResponse:
+      example:
+        success: true
+        messageId: msg_abc123
+        status: queued
+        consentRequired: true
+        consentUrl: https://openapi-generator.tech
+        message: message
+      properties:
+        success:
+          example: true
+          type: boolean
+        messageId:
+          example: msg_abc123
+          nullable: true
+          type: string
+        status:
+          enum:
+          - queued
+          - consent_requested
+          - consent_pending
+          - already_requested
+          - already_opted_in
+          example: queued
+          type: string
+        consentRequired:
+          type: boolean
+        consentUrl:
+          format: uri
+          nullable: true
+          type: string
+        message:
+          type: string
+      required:
+      - messageId
+      - status
+      - success
+      type: object
+    BulkMessageResult:
+      example:
+        recipient: recipient
+        status: queued
+        messageId: messageId
+        consentUrl: https://openapi-generator.tech
+        error: error
+        reason: reason
+      properties:
+        recipient:
+          type: string
+        status:
+          enum:
+          - queued
+          - consent_requested
+          - already_requested
+          - already_opted_in
+          - consent_pending
+          - rejected
+          type: string
+        messageId:
+          nullable: true
+          type: string
+        consentUrl:
+          format: uri
+          nullable: true
+          type: string
+        error:
+          nullable: true
+          type: string
+        reason:
+          nullable: true
+          type: string
+      required:
+      - recipient
+      - status
+      type: object
+    BulkMessageResponse:
+      example:
+        success: true
+        total: 0
+        queued: 0
+        consentRequested: 0
+        rejected: 0
+        results:
+        - recipient: recipient
+          status: queued
+          messageId: messageId
+          consentUrl: https://openapi-generator.tech
+          error: error
+          reason: reason
+        - recipient: recipient
+          status: queued
+          messageId: messageId
+          consentUrl: https://openapi-generator.tech
+          error: error
+          reason: reason
+      properties:
+        success:
+          example: true
+          type: boolean
+        total:
+          minimum: 0
+          type: integer
+        queued:
+          minimum: 0
+          type: integer
+        consentRequested:
+          minimum: 0
+          type: integer
+        rejected:
+          minimum: 0
+          type: integer
+        results:
+          items:
+            $ref: "#/components/schemas/BulkMessageResult"
+          type: array
+      required:
+      - consentRequested
+      - queued
+      - rejected
+      - results
+      - success
+      - total
+      type: object
+    DeliveryStatusResponse:
+      example:
+        data:
+          accountId: accountId
+          accountStatus: accountStatus
+          pending: 0
+          sent: 6
+          failed: 1
+      properties:
+        data:
+          $ref: "#/components/schemas/DeliveryStatus"
+      required:
+      - data
+      type: object
+    DeliveryStatus:
+      example:
+        accountId: accountId
+        accountStatus: accountStatus
+        pending: 0
+        sent: 6
+        failed: 1
+      properties:
+        accountId:
+          type: string
+        accountStatus:
+          type: string
+        pending:
+          description: QUEUED + SENDING outbound messages
+          type: integer
+        sent:
+          type: integer
+        failed:
+          type: integer
+      required:
+      - accountId
+      - accountStatus
+      - failed
+      - pending
+      - sent
+      type: object
+    ConnectionStatusResponse:
+      example:
+        data:
+          accountId: accountId
+          connected: true
+          stable: true
+          accountStatus: accountStatus
+          engineStatus: engineStatus
+          sessionStatus: sessionStatus
+          checkedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        data:
+          $ref: "#/components/schemas/ConnectionStatus"
+      required:
+      - data
+      type: object
+    ConnectionStatus:
+      example:
+        accountId: accountId
+        connected: true
+        stable: true
+        accountStatus: accountStatus
+        engineStatus: engineStatus
+        sessionStatus: sessionStatus
+        checkedAt: 2000-01-23T04:56:07.000+00:00
+      properties:
+        accountId:
+          type: string
+        connected:
+          type: boolean
+        stable:
+          type: boolean
+        accountStatus:
+          type: string
+        engineStatus:
+          type: string
+        sessionStatus:
+          type: string
+        checkedAt:
+          format: date-time
+          type: string
+      required:
+      - accountId
+      - accountStatus
+      - checkedAt
+      - connected
+      - engineStatus
+      - sessionStatus
+      - stable
+      type: object
+    ResumeDelivery:
+      example:
+        accountId: accountId
+        pending: 0
+        requeued: 0
+        connected: true
+      properties:
+        accountId:
+          type: string
+        pending:
+          minimum: 0
+          type: integer
+        requeued:
+          minimum: 0
+          type: integer
+        connected:
+          type: boolean
+      required:
+      - accountId
+      - connected
+      - pending
+      - requeued
+      type: object
+    ResumeDeliveryResponse:
+      example:
+        data:
+          accountId: accountId
+          pending: 0
+          requeued: 0
+          connected: true
+      properties:
+        data:
+          $ref: "#/components/schemas/ResumeDelivery"
+      required:
+      - data
+      type: object
+  securitySchemes:
+    apiKeyHeader:
+      in: header
+      name: X-API-Key
+      type: apiKey
+x-websocket-events:
+  transport: socket.io
+  authentication: Bearer access token or API key in handshake.auth.token
+  subscription: subscribeAccount(accountId) / unsubscribeAccount(accountId)
+  events:
+  - whatsapp:qr
+  - whatsapp:connecting
+  - whatsapp:connected
+  - whatsapp:disconnected
+  - whatsapp:reconnecting
+  - whatsapp:error
+  - whatsapp:delivery-resumed

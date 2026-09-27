@@ -1,0 +1,8 @@
+.tools/
+node_modules/
+.idea/
+.vscode/
+.DS_Store
+
+# Generator metadata is reproducible and not useful in source control.
+**/.openapi-generator/

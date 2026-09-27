@@ -1,0 +1,7 @@
+{
+  "invokerPackage": "Paygham",
+  "packageName": "Paygham SDK",
+  "artifactVersion": "0.1.0",
+  "composerVendorName": "paygham",
+  "composerProjectName": "sdk"
+}

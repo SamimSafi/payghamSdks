@@ -1,0 +1,20 @@
+{
+  "name": "paygham-sdks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "sync-spec": "node scripts/sync-spec.mjs",
+    "validate": "node scripts/openapi-generator.mjs validate",
+    "generate": "node scripts/openapi-generator.mjs generate",
+    "generate:npm": "node scripts/openapi-generator.mjs generate npm",
+    "generate:python": "node scripts/openapi-generator.mjs generate python",
+    "generate:ruby": "node scripts/openapi-generator.mjs generate ruby",
+    "generate:php": "node scripts/openapi-generator.mjs generate php",
+    "generate:nuget": "node scripts/openapi-generator.mjs generate nuget",
+    "generate:go": "node scripts/openapi-generator.mjs generate go"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

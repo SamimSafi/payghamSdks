@@ -1,0 +1,805 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Paygham Messaging API",
+    "version": "1.0.0",
+    "description": "Public server-side API for sending WhatsApp messages and monitoring delivery."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local development. Configure generated clients with the production API base URL."
+    }
+  ],
+  "x-websocket-events": {
+    "transport": "socket.io",
+    "authentication": "Bearer access token or API key in handshake.auth.token",
+    "subscription": "subscribeAccount(accountId) / unsubscribeAccount(accountId)",
+    "events": [
+      "whatsapp:qr",
+      "whatsapp:connecting",
+      "whatsapp:connected",
+      "whatsapp:disconnected",
+      "whatsapp:reconnecting",
+      "whatsapp:error",
+      "whatsapp:delivery-resumed"
+    ]
+  },
+  "tags": [
+    {
+      "name": "Messaging",
+      "description": "Send messages and check delivery with an API key"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "apiKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "ApiError": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ApiErrorBody"
+          }
+        }
+      },
+      "ApiErrorBody": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "VALIDATION_ERROR"
+          },
+          "message": {
+            "type": "string",
+            "example": "Request validation failed"
+          },
+          "details": {
+            "type": "object",
+            "nullable": true
+          }
+        }
+      },
+      "SendMessageRequest": {
+        "type": "object",
+        "required": [
+          "whatsappAccountId",
+          "to"
+        ],
+        "properties": {
+          "whatsappAccountId": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "example": "AF",
+            "description": "ISO country code; required for local numbers starting with 0"
+          },
+          "to": {
+            "type": "string",
+            "example": "0787349769",
+            "description": "Destination phone (alias: recipient)"
+          },
+          "recipient": {
+            "type": "string",
+            "example": "+93787349769",
+            "deprecated": true,
+            "description": "Deprecated alias for to."
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 4096,
+            "example": "Hello from my application",
+            "description": "Text body (alias: content). Optional when media is provided."
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 4096,
+            "deprecated": true,
+            "description": "Deprecated alias for message."
+          },
+          "mediaUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://",
+            "description": "Public http(s) URL for an image or PDF. Mutually exclusive with mediaBase64."
+          },
+          "mediaBase64": {
+            "type": "string",
+            "maxLength": 16000000,
+            "description": "Base64-encoded media. Mutually exclusive with mediaUrl."
+          },
+          "mediaMimeType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "application/pdf"
+            ],
+            "description": "Required when mediaUrl or mediaBase64 is set."
+          },
+          "mediaFilename": {
+            "type": "string",
+            "maxLength": 255,
+            "example": "invoice.pdf"
+          }
+        }
+      },
+      "BulkMessageRequest": {
+        "type": "object",
+        "required": [
+          "whatsappAccountId",
+          "recipients"
+        ],
+        "properties": {
+          "whatsappAccountId": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "example": "AF"
+          },
+          "recipients": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "0787349769",
+              "+93787349770"
+            ]
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 4096
+          },
+          "mediaUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://"
+          },
+          "mediaBase64": {
+            "type": "string",
+            "maxLength": 16000000
+          },
+          "mediaMimeType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "application/pdf"
+            ]
+          },
+          "mediaFilename": {
+            "type": "string",
+            "maxLength": 255
+          }
+        }
+      },
+      "SendMessageResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "messageId",
+          "status"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "messageId": {
+            "type": "string",
+            "nullable": true,
+            "example": "msg_abc123"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "consent_requested",
+              "consent_pending",
+              "already_requested",
+              "already_opted_in"
+            ],
+            "example": "queued"
+          },
+          "consentRequired": {
+            "type": "boolean"
+          },
+          "consentUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "BulkMessageResult": {
+        "type": "object",
+        "required": [
+          "recipient",
+          "status"
+        ],
+        "properties": {
+          "recipient": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "consent_requested",
+              "already_requested",
+              "already_opted_in",
+              "consent_pending",
+              "rejected"
+            ]
+          },
+          "messageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "consentUrl": {
+            "type": "string",
+            "format": "uri",
+            "nullable": true
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "BulkMessageResponse": {
+        "type": "object",
+        "required": [
+          "success",
+          "total",
+          "queued",
+          "consentRequested",
+          "rejected",
+          "results"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "queued": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "consentRequested": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "rejected": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BulkMessageResult"
+            }
+          }
+        }
+      },
+      "DeliveryStatusResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeliveryStatus"
+          }
+        }
+      },
+      "DeliveryStatus": {
+        "type": "object",
+        "required": [
+          "accountId",
+          "accountStatus",
+          "pending",
+          "sent",
+          "failed"
+        ],
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "accountStatus": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "integer",
+            "description": "QUEUED + SENDING outbound messages"
+          },
+          "sent": {
+            "type": "integer"
+          },
+          "failed": {
+            "type": "integer"
+          }
+        }
+      },
+      "ConnectionStatusResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ConnectionStatus"
+          }
+        }
+      },
+      "ConnectionStatus": {
+        "type": "object",
+        "required": [
+          "accountId",
+          "connected",
+          "stable",
+          "accountStatus",
+          "engineStatus",
+          "sessionStatus",
+          "checkedAt"
+        ],
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "connected": {
+            "type": "boolean"
+          },
+          "stable": {
+            "type": "boolean"
+          },
+          "accountStatus": {
+            "type": "string"
+          },
+          "engineStatus": {
+            "type": "string"
+          },
+          "sessionStatus": {
+            "type": "string"
+          },
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResumeDelivery": {
+        "type": "object",
+        "required": [
+          "accountId",
+          "pending",
+          "requeued",
+          "connected"
+        ],
+        "properties": {
+          "accountId": {
+            "type": "string"
+          },
+          "pending": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "requeued": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "connected": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ResumeDeliveryResponse": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ResumeDelivery"
+          }
+        }
+      }
+    },
+    "responses": {
+      "ValidationError": {
+        "description": "Request validation failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "Authentication is missing or invalid",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "ForbiddenError": {
+        "description": "The authenticated principal cannot perform this operation",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "NotFoundError": {
+        "description": "The requested resource was not found",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "ConflictError": {
+        "description": "The request conflicts with the current resource state",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "RateLimitedError": {
+        "description": "Rate or quota limit exceeded",
+        "headers": {
+          "Retry-After": {
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Seconds to wait before retrying."
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "PayloadTooLargeError": {
+        "description": "The request body is too large",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      },
+      "UpstreamError": {
+        "description": "The upstream messaging service failed",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ApiError"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/messages": {
+      "post": {
+        "tags": [
+          "Messaging"
+        ],
+        "operationId": "sendMessage",
+        "summary": "Send a WhatsApp message using an API key",
+        "security": [
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": "Stable unique key for this business message. Reuse it when retrying the same request."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Message queued or consent flow started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLargeError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitedError"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          }
+        }
+      }
+    },
+    "/api/v1/messages/bulk": {
+      "post": {
+        "tags": [
+          "Messaging"
+        ],
+        "operationId": "sendBulkMessages",
+        "summary": "Queue the same message for many recipients",
+        "security": [
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": "Stable unique key for this batch. Each recipient is deduplicated independently."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkMessageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Batch accepted; inspect per-recipient results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkMessageResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLargeError"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimitedError"
+          }
+        }
+      }
+    },
+    "/api/v1/messages/accounts/{whatsappAccountId}/delivery-status": {
+      "get": {
+        "tags": [
+          "Messaging"
+        ],
+        "operationId": "getDeliveryStatus",
+        "summary": "Get outbound delivery counts for an account",
+        "security": [
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "whatsappAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending / sent / failed counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeliveryStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/v1/messages/accounts/{whatsappAccountId}/connection-status": {
+      "get": {
+        "tags": [
+          "Messaging"
+        ],
+        "operationId": "getConnectionStatus",
+        "summary": "Check live WhatsApp connection status",
+        "security": [
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "whatsappAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection snapshot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    },
+    "/api/v1/messages/accounts/{whatsappAccountId}/resume": {
+      "post": {
+        "tags": [
+          "Messaging"
+        ],
+        "operationId": "resumeDelivery",
+        "summary": "Requeue pending outbound messages after reconnect",
+        "security": [
+          {
+            "apiKeyHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "whatsappAccountId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Resume result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDeliveryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundError"
+          }
+        }
+      }
+    }
+  }
+}
